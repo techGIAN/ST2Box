@@ -6,4 +6,4 @@ python gens/temporal_similarity.py
 python utils/data_utils.py
 
 # Now run the main
-python st2vec_train.py
+python pathlet2vec_train.py
