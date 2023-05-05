@@ -3,10 +3,6 @@ A deep representation learning framework using box architectures to capture spat
 
 ## Requirements
 
-I will list the requirements here soon.
-
-## Running the Model
-
 Please first install the requirements using:
 
 ```
@@ -16,11 +12,11 @@ pip install -r requirements.txt
 Download some trajectory datasets such as:
 
 * T-Drive: https://www.microsoft.com/en-us/research/publication/t-drive-trajectory-data-sample/
-* Rome: https://crawdad.org/roma/taxi/20140717
-* Porto: https://www.kaggle.com/c/pkdd-15-predict-taxi-service-trajectory-i/data
 * NYC: https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
 
-You can always use your own dataset and curate it according to our formatting.
+You can always use your own dataset and curate it according to our formatting. See below.
+
+## Running the Model
 
 ### Initial Setups
 
@@ -109,84 +105,25 @@ data
 |     |    |- time_drop_list.csv
 ```
 
-### ST2Vec Phase
+### Pathlet2Vec Phase
 
-Now is the time to embed the trajectories/road segments to spatiotemporal embedding vectors. Skip this entire steps and proceed to the Set2Box phase if you do not want the spatiotemporal information and just keep the raw elements. Note that this becomes Pathlet2Vec if we consider pathlets instead of road segments. But we are mostly considering the road segments (length-1 pathlets) in this phase.
+Now is the time to embed the trajectories/road segments to spatiotemporal embedding vectors. Skip this entire steps and proceed to the Set2Box phase if you do not want the spatiotemporal information and just keep the raw elements. If we use pathlets, then this is the Pathlet2Vec. Otherwise, we could use road segments of the road network which is the ST2Vec that is simply identical to Fang et al. [1].
 
-1. First preprocess the data:
+0. Modify the ```config.yaml``` file as necessary with the parameters you desire.
 
-```
-python preprocess.py
-```
-
-2. Next is to generate the ground truths for both spatial and temporal. Note that this can take a long time, depending on the trajectory dataset and road network
+1. Train the model. All the commands necessary to train the model (and generate the ground truths) are bundled within the following shell script:
 
 ```
-python spatial_similarity.py
-python temporal_similarity.py
+sh pathlet2vec_run.sh
 ```
 
-3. Next is to run the ```data_utils.py``` which allows spatiotemporal ground truth generation.
+2. Now learn the ST embeddings of the pathlets/trajectories using the following command:
 
 ```
-python data_utils.py
+python pathlet2vec_embed.py
 ```
 
-4. Now train the model with:
-
-```
-python main.py
-```
-
-Ensure that the following is set in ```main.py``` before training:
-
-```
-load_model_name = None              # If you have a model or optimizer saved from checkpoint, replace None here.
-load_optimizer_name = None 
-STsim.ST_train(load_model=load_model_name, load_optimizer=load_optimizer_name)
-```
-
-5. Re-run Step 4 command once you have already have your model ready to obtain the embeddings. But first, replace the ```with torch.no_grad()``` block of ```def ST_eval(self, load_model=None)``` method in ```Trainer.py``` with:
-
-```
-with torch.no_grad():
-    vali_node_list, vali_time_list, vali_d2vec_list = dataload.load(load_part='train')
-    embedding_vali = test_method.compute_embedding(road_network=road_network, net=net,
-                                                   test_traj=list(vali_node_list),
-                                                   test_time=list(vali_d2vec_list),
-                                                   test_batch=self.test_batch)
-    test_method.test_model(embedding_vali, typ='train', isvali=True)
-
-    vali_node_list, vali_time_list, vali_d2vec_list = dataload.load(load_part='vali')
-    embedding_vali = test_method.compute_embedding(road_network=road_network, net=net,
-                                                   test_traj=list(vali_node_list),
-                                                   test_time=list(vali_d2vec_list),
-                                                   test_batch=self.test_batch)
-    test_method.test_model(embedding_vali, typ='valid', isvali=True)
-
-    vali_node_list, vali_time_list, vali_d2vec_list = dataload.load(load_part='test')
-    embedding_vali = test_method.compute_embedding(road_network=road_network, net=net,
-                                                   test_traj=list(vali_node_list),
-                                                   test_time=list(vali_d2vec_list),
-                                                   test_batch=self.test_batch)
-    test_method.test_model(embedding_vali, typ='test', isvali=True)
-    exit()
-```
-
-Also replace the ```def test_model(embedding_set, isvali=False):``` with ```def test_model(embedding_set, typ, isvali=False):``` in ```test_method.py``` and adding the following lines after the method signature:
-
-```
-embedding_set = embedding_set.data.cpu().numpy()
-np.save('./embeds/{}_nyc_TP_embedding.npy'.format(typ), embedding_set)
-return
-```
-Next is to comment out the ```STsim.ST_train(load_model=load_model_name, load_optimizer=load_optimizer_name)``` and then uncomment ```STsim.ST_eval(load_model=load_model_name)```, where ```load_model``` should be the name of your model (and not ```None```). Finally, ensure the ```./embeds/``` directory is present before running:
-
-```
-python main.py
-```
-
-6. After Step 5, ensure you have the following files in ```./embeds/``` directory.
+This should create the following files in ```./embeds/``` directory.
 
 ```
 train_tdrive_TP_embedding.py
@@ -194,16 +131,17 @@ valid_tdrive_TP_embedding.py
 test_tdrive_TP_embedding.py
 ```
 
-7. Copy and paste those three files to another directory ```./traj_embeddings/``` that you must create if you still don't have it. 
-
-8. Copy and paste the ```test_st_distance.npy``` file to the directory ```./data/tdrive/st_traj/TP/```
-
-9. Run the following commands:
+3. Copy and paste those three files to another directory ```./traj_embeddings/``` that you must create if you still don't have it.  Also copy and paste the ```test_st_distance.npy``` file to the directory ```./data/tdrive/st_traj/TP/```. You can run the following commands, with the last command for the final GT extractor and embedding preprocessing.
 
 ```
-python gt_extractor.py --dataset tdrive --sim TP
-python traj_emb_preprocess.py -- dataset tdrive --sim TP --rounder 4
+mkdir traj_embeddings               # ignore this line if traj_embeddings/ already exists 
+mv ./embeds/train_tdrive_TP_embedding.py ./traj_embeddings/ 
+mv ./embeds/valid_tdrive_TP_embedding.py ./traj_embeddings/
+mv ./embeds/test_tdrive_TP_embedding.py ./traj_embeddings/
+mv ./data/tdrive/ground_truth/test_st_distance.py ./data/tdrive/st_traj/TP/
+sh embedding_preprocess.sh
 ```
+
 
 
 
@@ -237,7 +175,9 @@ sh run.sh
 
 ## References and Citation
 
-(Need to provide the references appropriately)
+[1] Ziquan Fang, Yuntao Du, Xinjun Zhu, Danlei Hu, Lu Chen, Yunjun Gao, and Christian S. Jensen. 2022. Spatio-Temporal Trajectory Similarity Learning in Road Networks. In Proceedings of the 28th ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD '22). Association for Computing Machinery, New York, NY, USA, 347–356. https://doi.org/10.1145/3534678.3539375
+
+[2] ....
 
 If you like our work or if you plan to use it, please cite our work with the following Bibtex format:
 
