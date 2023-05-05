@@ -12,18 +12,16 @@ import yaml
 import os
 
 config = yaml.safe_load(open('config.yaml'))
-dataset = str(config["dataset"])
-dataset_point = config["pointnum"][str(config["dataset"])]
+dataset = str(config['dataset'])
+dataset_point = config['pointnum'][str(config['dataset'])]
 data_cut = {
-    'tdrive': [10000, 14000, 30000],
-    'porto': [2500, 4000, 6000],
-    'nyc': [25000, 33524, 55000]
+    'tdrive': [10000, 14000, 30000] # Can change this
 }
 
 def find_trajtimelist():
     longest_traj = 0
     smallest_time = np.inf
-    time_list_int = np.load(str(config["shuffle_time_file"]), allow_pickle=True)
+    time_list_int = np.load(str(config['shuffle_time_file']), allow_pickle=True)
     for time_list in time_list_int:
         if len(time_list)>longest_traj:
             longest_traj = len(time_list)
@@ -35,13 +33,13 @@ def find_trajtimelist():
 longest_trajtime_len, smallest_trajtime = find_trajtimelist()
 
 def batch_timelist_ground_truth(valiortest = None):
-    time_list_int = np.load(str(config["shuffle_time_file"]), allow_pickle=True)
+    time_list_int = np.load(str(config['shuffle_time_file']), allow_pickle=True)
     if valiortest == 'vali':
-        time_list_int = time_list_int[data_cut[str(config["dataset"])][0]:data_cut[str(config["dataset"])][1]]   # based dataset and "validation or test" (train:validation:test = 1w:4k:1.6w)
+        time_list_int = time_list_int[data_cut[str(config['dataset'])][0]:data_cut[str(config['dataset'])][1]]   
     elif valiortest == 'test':
-        time_list_int = time_list_int[data_cut[str(config["dataset"])][1]:data_cut[str(config["dataset"])][2]]
+        time_list_int = time_list_int[data_cut[str(config['dataset'])][1]:data_cut[str(config['dataset'])][2]]
 
-    sample_list = time_list_int[:5000]  # m*n matrix distance, m and n can be set by yourself
+    sample_list = time_list_int[:5000]  
 
     pool = Pool(processes=19)
     for i in range(len(sample_list)+1):
@@ -56,9 +54,9 @@ def merge_timelist_ground_truth(sample_len, valiortest):
     res = []
     for i in range(sample_len+1):
         if i!=0 and i%50==0:
-            res.append(np.load('./ground_truth/{}/{}/{}_batch/{}_temporal_distance_{}.npy'.format(dataset, str(config["distance_type"]), valiortest, str(config["distance_type"]), str(i))))
+            res.append(np.load('../data/{}/ground_truth/{}/{}/{}_batch/{}_temporal_distance_{}.npy'.format(dataset, dataset, str(config['distance_type']), valiortest, str(config['distance_type']), str(i))))
     res = np.concatenate(res, axis=0)
-    np.save('./ground_truth/{}/{}/{}_temporal_distance.npy'.format(dataset, str(config["distance_type"]), valiortest), res)
+    np.save('../data/{}/ground_truth/{}/{}/{}_temporal_distance.npy'.format(dataset, dataset, str(config['distance_type']), valiortest), res)
 
 def timelist_distance(k, sample_list = [[]], test_list = [[]], valiortest=None):
 
@@ -66,23 +64,23 @@ def timelist_distance(k, sample_list = [[]], test_list = [[]], valiortest=None):
     for sample in sample_list:
         one_dis_list = []
         for traj in test_list:
-            if str(config["distance_type"]) == 'TP':
+            if str(config['distance_type']) == 'TP':
                 one_dis_list.append(TP_dis(sample, traj))
-            elif str(config["distance_type"]) == 'DITA':
+            elif str(config['distance_type']) == 'DITA':
                 one_dis_list.append(DITA_dis(sample, traj))
-            elif str(config["distance_type"]) == 'discret_frechet':
+            elif str(config['distance_type']) == 'discret_frechet':
                 one_dis_list.append(frechet_dis(sample, traj))
-            elif str(config["distance_type"]) == 'LCRS':
+            elif str(config['distance_type']) == 'LCRS':
                 one_dis_list.append(LCRS_dis(sample, traj))
-            elif str(config["distance_type"]) == 'NetERP':
+            elif str(config['distance_type']) == 'NetERP':
                 one_dis_list.append(NetERP_dis(sample, traj))
         all_dis_list.append(np.array(one_dis_list))
 
     all_dis_list = np.array(all_dis_list)
-    p = './ground_truth/{}/{}/{}_batch/'.format(dataset, str(config["distance_type"]), valiortest)
+    p = '../data/{}/ground_truth/{}/{}/{}_batch/'.format(dataset, dataset, str(config['distance_type']), valiortest)
     if not os.path.exists(p):
         os.makedirs(p)
-    np.save('./ground_truth/{}/{}/{}_batch/{}_temporal_distance_{}.npy'.format(dataset, str(config["distance_type"]), valiortest, str(config["distance_type"]), str(k)), all_dis_list)
+    np.save('../data/{}/ground_truth/{}/{}/{}_batch/{}_temporal_distance_{}.npy'.format(dataset, dataset, str(config['distance_type']), valiortest, str(config['distance_type']), str(k)), all_dis_list)
 
     print('complete: ' + str(k))
 

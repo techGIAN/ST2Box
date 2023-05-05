@@ -1,4 +1,4 @@
-from STmatching_distribution_ver import network_data
+from utils.map_match import network_data
 from multiprocessing import Pool
 import pickle
 import numpy as np
@@ -13,19 +13,17 @@ import yaml
 import collections
 import os
 
-random.seed(1998)
+random.seed(2023)
 config = yaml.safe_load(open('config.yaml'))
-dataset = str(config["dataset"])
-dataset_point = config["pointnum"][str(config["dataset"])]
+dataset = str(config['dataset'])
+dataset_point = config['pointnum'][str(config['dataset'])]
 data_cut = {
-    'tdrive': [10000, 14000, 30000],
-    'porto': [2500, 4000, 6000],
-    'nyc': [25000, 33524, 55000]
+    'tdrive': [10000, 14000, 30000] # Can replace this
 }
 
 def find_longest_trajectory():
     longest_traj = 0
-    node_list_int = np.load(str(config["shuffle_node_file"]), allow_pickle=True)
+    node_list_int = np.load(str(config['shuffle_node_file']), allow_pickle=True)
     for node_list in node_list_int:
         if len(node_list)>longest_traj:
             longest_traj = len(node_list)
@@ -45,9 +43,9 @@ def merge_Point_distance():
     res = []
     for i in range(dataset_point + 1):
         if i != 0 and i % 1000 == 0:
-            res.append(np.load('./ground_truth/{}/Point_dis_matrix_{}.npy'.format(dataset, str(i))))
+            res.append(np.load('../data/{}/ground_truth/{}/Point_dis_matrix_{}.npy'.format(dataset, dataset, str(i))))
     res = np.concatenate(res, axis=0)
-    np.save('./ground_truth/{}/Point_dis_matrix.npy'.format(dataset), res)
+    np.save('../data/{}/ground_truth/{}/Point_dis_matrix.npy'.format(dataset, dataset), res)
 
 def parallel_point_com(i, id_list = []):
     batch_list = []
@@ -67,18 +65,18 @@ def parallel_point_com(i, id_list = []):
             batch_list.append(np.array(one_list,dtype=np.float32))
 
     batch_list = np.array(batch_list,dtype=np.float32)
-    p = './ground_truth/{}/'.format(dataset)
+    p = '../data/{}/ground_truth/{}/'.format(dataset, dataset)
     if not os.path.exists(p):
         os.makedirs(p)
-    np.save('./ground_truth/{}/Point_dis_matrix_{}.npy'.format(dataset, str(i)), batch_list)
+    np.save('../data/{}/ground_truth/{}/Point_dis_matrix_{}.npy'.format(dataset, dataset, str(i)), batch_list)
 
 def generate_point_matrix():
-    res = np.load('./ground_truth/{}/Point_dis_matrix.npy'.format(dataset))
+    res = np.load('../data/{}/ground_truth/{}/Point_dis_matrix.npy'.format(dataset, dataset))
     return res
 
 def generate_node_edge_interation():
     node_edge_dict = collections.defaultdict(set)
-    edge = pd.read_csv('./data/{}/road/edge_weight.csv'.format(dataset))
+    edge = pd.read_csv('../data/{}/data/{}/road/edge_weight.csv'.format(dataset, dataset))
     node_s, node_e = edge.s_node, edge.e_node
 
     for idx, (n_s, n_e) in enumerate(zip(node_s, node_e)):
@@ -88,13 +86,13 @@ def generate_node_edge_interation():
     return node_edge_dict
 
 def batch_similarity_ground_truth(valiortest = None):
-    node_list_int = np.load(str(config["shuffle_node_file"]), allow_pickle=True)
+    node_list_int = np.load(str(config['shuffle_node_file']), allow_pickle=True)
     if valiortest == 'vali':
-        node_list_int = node_list_int[data_cut[str(config["dataset"])][0]:data_cut[str(config["dataset"])][1]]  # based dataset and "validation or test"  (train:validation:test = 1w:4k:1.6w)
+        node_list_int = node_list_int[data_cut[str(config['dataset'])][0]:data_cut[str(config['dataset'])][1]]  
     elif valiortest == 'test':
-        node_list_int = node_list_int[data_cut[str(config["dataset"])][1]:data_cut[str(config["dataset"])][2]]
+        node_list_int = node_list_int[data_cut[str(config['dataset'])][1]:data_cut[str(config['dataset'])][2]]
 
-    sample_list = node_list_int[:5000]  # m*n matrix distance, m and n can be set by yourself
+    sample_list = node_list_int[:5000]  
 
     pool = Pool(processes=19)
     for i in range(len(sample_list)+1):
@@ -109,37 +107,37 @@ def merge_similarity_ground_truth(sample_len, valiortest):
     res = []
     for i in range(sample_len+1):
         if i!=0 and i%50==0:
-            res.append(np.load('./ground_truth/{}/{}/{}_batch/{}_spatial_distance_{}.npy'.format(dataset, str(config["distance_type"]),valiortest, str(config["distance_type"]), str(i))))
+            res.append(np.load('../data/{}/ground_truth/{}/{}/{}_batch/{}_spatial_distance_{}.npy'.format(dataset, dataset, str(config['distance_type']),valiortest, str(config['distance_type']), str(i))))
     res = np.concatenate(res, axis=0)
-    np.save('./ground_truth/{}/{}/{}_spatial_distance.npy'.format(dataset, str(config["distance_type"]), valiortest), res)
+    np.save('../data/{}/ground_truth/{}/{}/{}_spatial_distance.npy'.format(dataset, dataset, str(config['distance_type']), valiortest), res)
 
 def Traj_distance(k, sample_list = [[]], test_list = [[]], valiortest = None):
     all_dis_list = []
     for sample in sample_list:
         one_dis_list = []
         for traj in test_list:
-            if str(config["distance_type"]) == 'TP':
+            if str(config['distance_type']) == 'TP':
                 one_dis_list.append(TP_dis(sample, traj))
-            elif str(config["distance_type"]) == 'DITA':
+            elif str(config['distance_type']) == 'DITA':
                 one_dis_list.append(DITA_dis(sample, traj))
-            elif str(config["distance_type"]) == 'discret_frechet':
+            elif str(config['distance_type']) == 'discret_frechet':
                 one_dis_list.append(frechet_dis(sample, traj))
-            elif str(config["distance_type"]) == 'LCRS':
+            elif str(config['distance_type']) == 'LCRS':
                 one_dis_list.append(LCRS_dis(sample, traj))
-            elif str(config["distance_type"]) == 'NetERP':
+            elif str(config['distance_type']) == 'NetERP':
                 one_dis_list.append(NetERP_dis(sample, traj))
 
         all_dis_list.append(np.array(one_dis_list))
 
     all_dis_list = np.array(all_dis_list)
-    p = './ground_truth/{}/{}/{}_batch/'.format(dataset, str(config["distance_type"]), valiortest)
+    p = '../data/{}/ground_truth/{}/{}/{}_batch/'.format(dataset, dataset, str(config['distance_type']), valiortest)
     if not os.path.exists(p):
         os.makedirs(p)
-    np.save('./ground_truth/{}/{}/{}_batch/{}_spatial_distance_{}.npy'.format(dataset, str(config["distance_type"]), valiortest, str(config["distance_type"]), str(k)), all_dis_list)
+    np.save('../data/{}/ground_truth/{}/{}/{}_batch/{}_spatial_distance_{}.npy'.format(dataset, dataset, str(config['distance_type']), valiortest, str(config['distance_type']), str(k)), all_dis_list)
 
     print('complete: ' + str(k))
 
-distance_matrix = generate_point_matrix()  # This line of code should be commented out when executing the current "spatial_similarity.py" file, but needed at any other time.
+distance_matrix = generate_point_matrix()  # This line of code should be commented out when executing the current 'spatial_similarity.py' file, but needed at any other time.
 
 @numba.jit(nopython=True, fastmath=True)
 def TP_dis(list_a = [] , list_b = []):
@@ -268,7 +266,7 @@ def hot_node():
     print(max_num, max_idx)
     return max_idx
 
-hot_node_id = hot_node() # This line of code should be commented out when executing the current "spatial_similarity.py" file, but needed at any other time.
+hot_node_id = hot_node() 
 
 @numba.jit(nopython=True, fastmath=True)
 def NetERP_dis(list_a = [], list_b = []):
