@@ -105,7 +105,7 @@ data
 |     |    |- time_drop_list.csv
 ```
 
-### Pathlet2Vec Phase
+### Pathlet2Vec
 
 Now is the time to embed the trajectories/road segments to spatiotemporal embedding vectors. Skip this entire steps and proceed to the Set2Box phase if you do not want the spatiotemporal information and just keep the raw elements. If we use pathlets, then this is the Pathlet2Vec. Otherwise, we could use road segments of the road network which is the ST2Vec that is simply identical to Fang et al. [1].
 
@@ -142,12 +142,9 @@ mv ./data/tdrive/ground_truth/test_st_distance.py ./data/tdrive/st_traj/TP/
 sh embedding_preprocess.sh
 ```
 
+### Pathlet2Box
 
-
-
-### Set2Box Phase
-
-Now, we will do Set2Box. But first ensure that the following files are found in the ```data/tdrive/st_traj/``` directory (as a result of running the ```traj_emb_preprocess.py```):
+Now, we will do Pathlet2Box that is adapted from Lee et al. [2] but for pathlets. But first ensure that the following files are found in the ```data/tdrive/st_traj/``` directory (as a result of running the last command above):
 
 ```
 tdrive_roads_train.txt           # training set
@@ -156,9 +153,7 @@ tdrive_roads_test.txt            # testing set
 tdrive_roads_query.txt           # query set
 ```
 
-where the first line of the file will be ```N   M``` (separated by a tab), where there are a total of ```N``` distinct elements in the dataset T-Drive and ```M``` sets (trajectories) in the [training/validation/testing/query] text files. Then all the rest of the lines are tab-delimeted, where each line is a set (the trajectory) and each item in that line is an element. Note that all elements have to be strictly less than ```N``` and that there are no gaps. For example, if ```N = 100``` then the elements [0,...,99] must exist at least once. If not, then you can fix it for instance by using a lower ```N``` value and fill in the missing gaps by some sort of mapping or transformation. And finally ```M``` has to be correct in the number of sets. Otherwise an error is thrown.
-
-Note that ```roads``` here can be replaced with ```hexes``` for hexagon blocks, or ```points_lon``` (for raw longitudinal points) and ```points_lat``` (for raw latitudinal points). Note that setting points would mean that we need both the longitudinal and latitudinal. Of course, if we want spatiotemporal information (embeddings from ST2Vec), then use ```stroads``` instead of ```roads```:
+Note that ```roads``` here can be replaced with ```hexes``` for hexagon blocks, or ```points_lon``` (for raw longitudinal points) and ```points_lat``` (for raw latitudinal points). Note that setting it as "points" would mean that we need both the longitudinal and latitudinal. Of course, if we want spatiotemporal information (embeddings from ST2Vec), then use ```stroads``` instead of ```roads```:
 
 ```
 tdrive_stroads_train.txt           # training set
@@ -167,17 +162,19 @@ tdrive_stroads_test.txt            # testing set
 tdrive_stroads_query.txt           # query set
 ```
 
-Now refer to ```run.sh``` for some configurations that you need to change.  Part 1 there is to train the box model. Part 2 is similarity computation. And then part 3 is calculation of evaluation scores. To run it, then we have:
+All these can be fixed on the ```run.sh``` file so any modifications Now refer to ```run.sh``` for some configurations that you need to change.  Part 1 there is to train the box model. Part 2 is similarity computation. And then part 3 is calculation of evaluation scores. To run it, then we have:
 
 ```
 sh run.sh
 ```
 
+Note that if it cannot find some folder, then you would have to create the directory as required. If it cannot find some file, it might be stored in another directory.
+
 ## References and Citation
 
-[1] Ziquan Fang, Yuntao Du, Xinjun Zhu, Danlei Hu, Lu Chen, Yunjun Gao, and Christian S. Jensen. 2022. Spatio-Temporal Trajectory Similarity Learning in Road Networks. In Proceedings of the 28th ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD '22). Association for Computing Machinery, New York, NY, USA, 347–356. https://doi.org/10.1145/3534678.3539375
+[1] Ziquan Fang, Yuntao Du, Xinjun Zhu, Danlei Hu, Lu Chen, Yunjun Gao, and Christian S. Jensen. 2022. "Spatio-Temporal Trajectory Similarity Learning in Road Networks". In Proceedings of the 28th ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD '22). Association for Computing Machinery, New York, NY, USA, 347–356. https://doi.org/10.1145/3534678.3539375
 
-[2] ....
+[2] Geon Lee, Chanyoung Park and Kijung Shin, "Set2Box: Similarity Preserving Representation Learning for Sets," 2022 IEEE International Conference on Data Mining (ICDM), Orlando, FL, USA, 2022, pp. 1023-1028, doi: 10.1109/ICDM54844.2022.00125.
 
 If you like our work or if you plan to use it, please cite our work with the following Bibtex format:
 
@@ -191,4 +188,4 @@ Or you can also use this citation:
 
 #### Contact
 
-Please contact me gcalix@eecs.yorku.ca for any bugs/issues/questions you may have on the code.
+Please contact me gcalix@eecs.yorku.ca for any bugs/issues/questions you may have found on the code.
