@@ -1,0 +1,4 @@
+Processor
+    Intel® Core™ i7-9700 CPU @ 3.00GHz × 8 
+Graphics
+    NVIDIA Corporation TU104 [GeForce RTX 2080] / Mesa Intel® UHD Graphics 630 (CFL GT2)
