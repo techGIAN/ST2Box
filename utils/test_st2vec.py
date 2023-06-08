@@ -25,7 +25,7 @@ def compute_embedding(net, road_network, test_traj, test_time, test_batch):
 def test_model(embedding_set, isvali=False):
 
     config = yaml.safe_load(open('config.yaml'))
-    K = int(config['K'])
+    k = int(config['k'])
 
     if isvali==True:
         input_dis_matrix = np.load(str(config["path_vali_truth"]))
@@ -40,7 +40,7 @@ def test_model(embedding_set, isvali=False):
         matrix = np.linalg.norm(emb-embedding_set, ord=2, axis=1)
         embedding_dis_matrix.append(matrix.tolist())
 
-    l_hr_K = 0
+    l_hr_k = 0
 
     f_num = 0
 
@@ -56,18 +56,18 @@ def test_model(embedding_set, isvali=False):
         input_R = input_R[:5000]
 
 
-        input_K = np.argsort(input_R)[1:K]
+        input_k = np.argsort(input_R)[1:k]
 
         embed_R = np.array(embedding_dis_matrix[i])
         embed_R = embed_R[one_index]
         embed_R = embed_R[:5000]
 
-        embed_K = np.argsort(embed_R)[1:K]
+        embed_k = np.argsort(embed_R)[1:k]
 
         if len(one_index)>=51:
             f_num += 1
-            l_hr_K += len(list(set(input_K).intersection(set(embed_K))))
+            l_hr_k += len(list(set(input_k).intersection(set(embed_k))))
 
-    hr_K = float(l_recall_K) / (K * f_num)
+    hr_k = float(l_recall_k) / (k * f_num)
 
-    return hr_K, mae, kt
+    return hr_k, mae, kt

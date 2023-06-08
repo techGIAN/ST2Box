@@ -129,14 +129,14 @@ class STsim_Trainer(object):
                     embedding_vali = test_method.compute_embedding(road_network=road_network, net=net,
                                                                    test_traj=list(vali_node_list),
                                                                    test_time=list(vali_d2vec_list),
-                                                                   test_batch=self.test_batch)
+                                                                   test_batcpathleth=self.test_batch)
             
                     acc = test_method.test_model(embedding_vali, isvali=True)
                     s7 = time.time()
                     print("test time: ", s7-s6)
                     print('epoch:', epoch, acc[0], acc[1], acc[2], loss.item())
 
-                    save_modelname = './model/{}_{}_2w_ST/{}_{}_epoch_{}_HR10_{}_HR50_{}_HR1050_{}_Loss_{}.pkl'.format(self.dataset, self.distance_type,
+                    save_modelname = './model/{}_{}_2w_ST/{}_{}_epoch_{}_HR_{}_MAE_{}_KT_{}_Loss_{}.pkl'.format(self.dataset, self.distance_type,
                         self.dataset, self.distance_type, str(epoch), acc[0], acc[1], acc[2], loss.item())
                     torch.save(net.state_dict(), save_modelname)
 

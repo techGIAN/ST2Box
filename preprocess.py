@@ -1,5 +1,5 @@
 #
-#   Code adapted from Fang et al. (https://github.com/zealscott/ST2Vec)
+#   Partial code taken from Fang et al. (https://github.com/zealscott/ST2Vec)
 #
 
 import yaml
