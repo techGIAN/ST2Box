@@ -80,7 +80,7 @@ You can always use your own dataset and curate it according to our formatting. S
        ...
 ```
 
-9. Skip this Step 9 if you do not want to express trajectories as pathlets. But note that you can express trajectories as pathlets of length 1 by the following (but you have to do the same for the timestamps too), add such files:
+9. The following step is optional; this is an alternative format that is accepted. This is a more explicit format where each record represents the road segment. The other format is the implicit format and our method will be able to extract the road segments on its own.
 
 ```
    Traj_id       Node_list                                          Coor_list
@@ -105,22 +105,22 @@ data
 |     |    |- time_drop_list.csv
 ```
 
-### Pathlet2Vec
+### Seg2Vec
 
-Now is the time to embed the trajectories/road segments to spatiotemporal embedding vectors. Skip this entire steps and proceed to the Set2Box phase if you do not want the spatiotemporal information and just keep the raw elements. If we use pathlets, then this is the Pathlet2Vec. Otherwise, we could use road segments of the road network which is the ST2Vec that is simply identical to Fang et al. [1].
+Now is the time to embed the trajectories/road segments to spatiotemporal embedding vectors. Skip this entire steps and proceed to the Set2Box phase if you do not want the spatiotemporal information and just keep the raw elements. If we use road segments, then this is the Seg2Vec. Otherwise, we could use entire trajectories of the road network which is the ST2Vec that is simply identical to Fang et al. [1].
 
 0. Modify the ```config.yaml``` file as necessary with the parameters you desire.
 
 1. Train the model. All the commands necessary to train the model (and generate the ground truths) are bundled within the following shell script:
 
 ```
-sh pathlet2vec_run.sh
+sh seg2vec_run.sh
 ```
 
 2. Now learn the ST embeddings of the pathlets/trajectories using the following command:
 
 ```
-python pathlet2vec_embed.py
+python seg2vec_embed.py
 ```
 
 This should create the following files in ```./embeds/``` directory.
@@ -139,12 +139,12 @@ mv ./embeds/train_tdrive_TP_embedding.py ./traj_embeddings/
 mv ./embeds/valid_tdrive_TP_embedding.py ./traj_embeddings/
 mv ./embeds/test_tdrive_TP_embedding.py ./traj_embeddings/
 mv ./data/tdrive/ground_truth/test_st_distance.py ./data/tdrive/st_traj/TP/
-sh embedding_preprocess.sh
+sh embedding_preprocess.shwith
 ```
 
-### Pathlet2Box
+### Seg2Box
 
-Now, we will do Pathlet2Box that is adapted from Lee et al. [2] but for pathlets. But first ensure that the following files are found in the ```data/tdrive/st_traj/``` directory (as a result of running the last command above):
+Now, we will do Seg2Box that is adapted from Lee et al. [2] but for road segments. But first ensure that the following files are found in the ```data/tdrive/st_traj/``` directory (as a result of running the last command above):
 
 ```
 tdrive_roads_train.txt           # training set
@@ -174,35 +174,27 @@ Note that if it cannot find some folder, then you would have to create the direc
 
 [1] Ziquan Fang, Yuntao Du, Xinjun Zhu, Danlei Hu, Lu Chen, Yunjun Gao, and Christian S. Jensen. 2022. "Spatio-Temporal Trajectory Similarity Learning in Road Networks". In Proceedings of the 28th ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD '22). Association for Computing Machinery, New York, NY, USA, 347–356. https://doi.org/10.1145/3534678.3539375
 
-[2] Geon Lee, Chanyoung Park and Kijung Shin, "Set2Box: Similarity Preserving Representation Learning for Sets," 2022 IEEE International Conference on Data Mining (ICDM), Orlando, FL, USA, 2022, pp. 1023-1028, doi: 10.1109/ICDM54844.2022.00125.
+[2] Geon Lee, Chanyoung Park and Kijung Shin, "Set2Box: Similarity Preserving Representation Learning for Sets," 2022 IEEE International Conference on Data Mining (ICDM), Orlando, FL, USA, 2022, pp. 1023-1028, doi: https://doi.org/10.1109/ICDM54844.2022.00125.
 
 If you like our work or if you plan to use it, please cite our work with the following Bibtex format:
 
 ```
 @INPROCEEDINGS{alix2023set2box,
-
   author={Alix, Gian and Papagelis, Manos},
-
   booktitle={2023 IEEE International Conference on Data Mining (ICDM)}, 
-
-  title={Set2Box: Similarity Preserving Representation Learning for Sets}, 
-
-  year={2022},
-
+  title={ST2Box: Spatiotemporal Trajectory Similarity using Set to Box Representations}, 
+  year={2023},
   volume={},
-
   number={},
-
-  pages={1023-1028},
-
-  doi={10.1109/ICDM54844.2022.00125}
+  pages={},
+  doi={}
 }
 
 ```
 
 Or you can also use this citation:
 
-(Need to insert citation)
+Gian Alix and Manos Papagelis, "ST2Box: Spatiotemporal Trajectory Similarity using Set to Box Representations," 2023 IEEE International Conference on Data Mining (ICDM), Beijing, China, 2023, pp. XXXX, doi: https://doi.org/XX.XXXX/ICDMXXXXX.2023.XXXXX.
 
 #### Contact
 
