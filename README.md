@@ -179,7 +179,25 @@ Note that if it cannot find some folder, then you would have to create the direc
 If you like our work or if you plan to use it, please cite our work with the following Bibtex format:
 
 ```
-Bibtex format here...
+@INPROCEEDINGS{alix2023set2box,
+
+  author={Alix, Gian and Papagelis, Manos},
+
+  booktitle={2023 IEEE International Conference on Data Mining (ICDM)}, 
+
+  title={Set2Box: Similarity Preserving Representation Learning for Sets}, 
+
+  year={2022},
+
+  volume={},
+
+  number={},
+
+  pages={1023-1028},
+
+  doi={10.1109/ICDM54844.2022.00125}
+}
+
 ```
 
 Or you can also use this citation:
