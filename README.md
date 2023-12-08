@@ -181,7 +181,7 @@ If you like our work or if you plan to use it, please cite our work with the fol
 ```
 @INPROCEEDINGS{alix2023set2box,
   author={Alix, Gian and Papagelis, Manos},
-  booktitle={2023 IEEE International Conference on Data Mining (ICDM)}, 
+  booktitle={}, 
   title={ST2Box: Spatiotemporal Trajectory Similarity using Set to Box Representations}, 
   year={2023},
   volume={},
@@ -191,10 +191,6 @@ If you like our work or if you plan to use it, please cite our work with the fol
 }
 
 ```
-
-Or you can also use this citation:
-
-> Gian Alix and Manos Papagelis, "ST2Box: Spatiotemporal Trajectory Similarity using Set to Box Representations," 2023 IEEE International Conference on Data Mining (ICDM), Beijing, China, 2023, pp. XXXX, doi: https://doi.org/XX.XXXX/ICDMXXXXX.2023.XXXXX.
 
 #### Contact
 
